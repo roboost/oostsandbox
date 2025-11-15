@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  
+  <!-- HTML header -->
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Add a title -->
+    <title>Leaflet Map</title>
+    
+    <!-- Add Leaflet's CSS -->    
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    
+    <!-- #map is a CSS ID selector, targeting an HTML element, that has the ID="map" attribute (see "<div id>" below) -->
+    <style>
+      #map {width: 800px; height: 600px;}
+    </style>
+    
+    <!-- Add Leaflet javascript library -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    
+    <!-- Add jQuery -->
+    <script
+      type="text/javascript"
+      src="http://code.jquery.com/jquery-1.7.1.min.js"
+    ></script>
+  </head>
+  
+  <!-- HTML body/content -->
+  <body>
+    
+    <!-- Define the map size -->
+    <div id="map" style="width: 800px; height: 600px"></div>
+    
+    <!-- Define the map area -->
+    <script>      
+      var map = L.map('map').setView([48.9, -123.5], 9);
+
+      //<-- Add a base map layer, set max zoom, and attribution -->
+
+      //L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      //L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
+        maxZoom: 20,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(map);
+      
+      // -- Add as WMS --
+
+      //L.tileLayer.wms("https://openmaps.gov.bc.ca/geo/ows", {
+      //  layers: 'WHSE_TANTALIS.TA_CROWN_TENURES_SVW',
+      //  format: 'image/png',
+      //  transparent: true,
+      //  attribution: '&copy; <a href="https://catalogue.data.gov.bc.ca/">BC Data Catalogue</a>', //"BC Data Catalogue",
+      //  cql_filter: "CROWN_LANDS_FILE='1415239'"
+      //}).addTo(map);
+      
+      // -- Add as WFS --
+
+      // WFS: https://openmaps.gov.bc.ca/geo/pub/WHSE_LAND_AND_NATURAL_RESOURCE.PROT_CURRENT_FIRE_POLYS_SP/ows?service=wfs&version=1.1.0&request=getfeature&typename=pub:WHSE_LAND_AND_NATURAL_RESOURCE.PROT_CURRENT_FIRE_POLYS_SP&CQL_FILTER=FIRE_STATUS=%27Fire%20of%20Note%27&FIRE_YEAR=2025&outputFormat=json&srsName=EPSG:4326
+      // WFS: https://openmaps.gov.bc.ca/geo/pub/WHSE_TANTALIS.TA_CROWN_TENURES_SVW/ows?service=wfs&version=1.1.0&request=getfeature&typename=pub:WHSE_LAND_AND_NATURAL_RESOURCE.PROT_CURRENT_FIRE_POLYS_SP&CQL_FILTER=CROWN_LANDS_FILE=1415239&outputFormat=json&srsName=EPSG:4326
+
+      // Fetch the WFS data as GeoJSON
+      fetch("https://openmaps.gov.bc.ca/geo/pub/WHSE_TANTALIS.TA_CROWN_TENURES_SVW/ows?service=wfs&version=1.1.0&request=getfeature&typename=pub:WHSE_TANTALIS.TA_CROWN_TENURES_SVW&outputFormat=json&srsName=EPSG:4326")
+        .then(response => response.json())
+        .then(data => {
+          // Add the GeoJSON layer to the map
+          L.geoJSON(data, {
+            onEachFeature: function (feature, layer) {
+              // Customize the popup content with feature properties
+              let popupContent = "<b>CROWN LANDS FILE:</b> " + feature.properties.CROWN_LANDS_FILE;
+              // Add more attributes as needed
+              layer.bindPopup(popupContent);
+            }
+          }).addTo(map);
+        });
+
+    </script>
+  </body>
+</html>
